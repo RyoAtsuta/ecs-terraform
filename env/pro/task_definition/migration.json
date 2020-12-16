@@ -1,0 +1,204 @@
+{
+    "containerDefinitions" : [
+        {
+            "name" : "bmake-laravel-migration",
+            "image" : "$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-1.amazonaws.com/bmake/bmake-server-laravel:$CIRCLE_SHA1",
+            "cpu" : 50,
+            "memoryReservation" : 50,
+            "essential" : true,
+            "entryPoint" : ["/bin/sh", "-c"],
+            "command" : ["php artisan migrate --force"],
+            "links" : [
+                "bmake-server-laravel-mysql-migration:mysql"
+            ],
+            "environment" : [
+                {
+                    "name" : "APP_NAME",
+                    "value" : "bmake-laravel"
+                  },
+                  {
+                      "name" : "APP_ENV",
+                      "value" : "development"
+                  },
+                  {
+                      "name" : "APP_KEY",
+                      "value" : "$APP_KEY"
+                  },
+                  {
+                      "name" : "APP_DEBUG",
+                      "value" : "true"
+                  },
+                  {
+                      "name" : "APP_URL",
+                      "value" : "http://localhost"
+                  },
+                  {
+                      "name" : "LOG_CHANNEL",
+                      "value" : "stack"
+                  },
+                  {
+                      "name" : "DB_CONNECTION",
+                      "value" : "mysql"
+                  },
+                  {
+                      "name" : "DB_HOST",
+                      "value" : "mysql"
+                  },
+                  {
+                      "name" : "DB_PORT",
+                      "value" : "3306"
+                  },
+                  {
+                      "name" : "DB_DATABASE",
+                      "value" : "$DB_DATABASE"
+                  },
+                  {
+                      "name" : "DB_USERNAME",
+                      "value" : "$DB_USERNAME"
+                  },
+                  {
+                      "name" : "DB_PASSWORD",
+                      "value" : "$DB_PASSWORD"
+                  },
+                  {
+                      "name" : "BROADCAST_DRIVER",
+                      "value" : "log"
+                  },
+                  {
+                      "name" : "CACHE_DRIVER",
+                      "value" : "file"
+                  },
+                  {
+                      "name" : "QUEUE_CONNECTION",
+                      "value" : "sync"
+                  },
+                  {
+                      "name" : "SESSION_DRIVER",
+                      "value" : "file"
+                  },
+                  {
+                      "name" : "SESSION_LIFETIME",
+                      "value" : "120"
+                  },
+                  {
+                      "name" : "REDIS_HOST",
+                      "value" : "redis"
+                  },
+                  {
+                      "name" : "REDIS_PASSWORD",
+                      "value" : "null"
+                  },
+                  {
+                      "name" : "REDIS_PORT",
+                      "value" : "6379"
+                  },
+                  {
+                      "name" : "MAIL_DRIVER",
+                      "value" : "smtp"
+                  },
+                  {
+                      "name" : "MAIL_HOST",
+                      "value" : "smtp.mailtrap.io"
+                  },
+                  {
+                      "name" : "MAIL_PORT",
+                      "value" : "2525"
+                  },
+                  {
+                      "name" : "MAIL_USERNAME",
+                      "value" : "null"
+                  },
+                  {
+                      "name" : "MAIL_PASSWORD",
+                      "value" : "null"
+                  },
+                  {
+                      "name" : "MAIL_ENCRYPTION",
+                      "value" : "null"
+                  },
+                  {
+                      "name" : "AWS_ACCESS_KEY_ID",
+                      "value" : "$AWS_ACCESS_KEY_ID"
+                  },
+                  {
+                      "name" : "AWS_SECRET_ACCESS_KEY",
+                      "value" : "$AWS_SECRET_ACCESS_KEY"
+                  },
+                  {
+                      "name" : "AWS_DEFAULT_REGION",
+                      "value" : "app-northeast-1"
+                  },
+                  {
+                      "name" : "AWS_BUCKET",
+                      "value" : ""
+                  },
+                  {
+                      "name" : "PUSHER_APP_ID",
+                      "value" : ""
+                  },
+                  {
+                      "name" : "PUSHER_APP_KEY",
+                      "value" : ""
+                  },
+                  {
+                      "name" : "PUSHER_APP_SECRET",
+                      "value" : ""
+                  },
+                  {
+                      "name" : "PUSHER_APP_CLUSTER",
+                      "value" : "mt1"
+                  },
+                  {
+                      "name" : "MIX_PUSHER_APP_KEY",
+                      "value" : ""
+                  },
+                  {
+                      "name" : "MIX_PUSHER_APP_CLUSTER",
+                      "value" : ""
+                  }
+            ]
+        },
+        {
+            "name" : "bmake-server-laravel-mysql-migration",
+            "hostname" : "mysql",
+            "image" : "mysql:5.7",
+            "cpu" : 50,
+            "memoryReservation" : 50,
+            "essential" : true,
+            "portMappings" : [
+              {
+                "containerPort" : 3306,
+                "hostPort" : 3306
+              }
+            ],
+            "mountPoints" : [
+                {
+                    "sourceVolume" : "mysql_data_dir",
+                    "containerPath" : "/var/lib/mysql"
+                }
+            ],
+            "environment" : [
+              {
+                "name" : "MYSQL_ROOT_PASSWORD",
+                "value" : "$DB_PASSWORD"
+              },
+              {
+                "name" : "MYSQL_DATABASE",
+                "value" : "$DATABASE_NAME"
+              },
+              {
+                "name" : "MYSQL_USER",
+                "value" : "$DB_USERNAME"
+              }
+            ]
+          }
+    ],
+    "volumes" : [
+        {
+            "name" : "mysql_data_dir",
+            "host" : {
+                "sourcePath" : "/var/lib/mysql"
+            }
+        }
+    ]
+}

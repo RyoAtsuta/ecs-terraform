@@ -1,0 +1,391 @@
+{
+  "containerDefinitions": [
+    {
+      "name": "bmake-server-laravel-nginx",
+      "hostname": "bmake-server-laravel-nginx",
+      "image": "$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-1.amazonaws.com/bmake/bmake-server-laravel-nginx:$CIRCLE_SHA1",
+      "cpu": 100,
+      "memoryReservation": 50,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080
+        }
+      ],
+      "links": ["bmake-server-laravel-app:app"]
+    },
+    {
+      "name": "bmake-server-laravel-app",
+      "hostname": "bmake-server-laravel-app",
+      "image": "$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-1.amazonaws.com/bmake/bmake-server-laravel:$CIRCLE_SHA1",
+      "cpu": 200,
+      "memoryReservation": 100,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 9000,
+          "hostPort": 9000
+        }
+      ],
+      "links": ["bmake-server-laravel-mysql:mysql"],
+      "environment": [
+        {
+          "name": "APP_NAME",
+          "value": "bmake-laravel"
+        },
+        {
+          "name": "APP_ENV",
+          "value": "development"
+        },
+        {
+          "name": "APP_KEY",
+          "value": "$APP_KEY"
+        },
+        {
+          "name": "APP_DEBUG",
+          "value": "false"
+        },
+        {
+          "name": "APP_URL",
+          "value": "http://localhost"
+        },
+        {
+          "name": "LOG_CHANNEL",
+          "value": "stack"
+        },
+        {
+          "name": "DB_CONNECTION",
+          "value": "mysql"
+        },
+        {
+          "name": "DB_HOST",
+          "value": "mysql"
+        },
+        {
+          "name": "DB_PORT",
+          "value": "3306"
+        },
+        {
+          "name": "DB_DATABASE",
+          "value": "$DB_DATABASE"
+        },
+        {
+          "name": "DB_USERNAME",
+          "value": "$DB_USERNAME"
+        },
+        {
+          "name": "DB_PASSWORD",
+          "value": "$DB_PASSWORD"
+        },
+        {
+          "name": "BROADCAST_DRIVER",
+          "value": "log"
+        },
+        {
+          "name": "CACHE_DRIVER",
+          "value": "file"
+        },
+        {
+          "name": "QUEUE_CONNECTION",
+          "value": "sync"
+        },
+        {
+          "name": "SESSION_DRIVER",
+          "value": "file"
+        },
+        {
+          "name": "SESSION_LIFETIME",
+          "value": "120"
+        },
+        {
+          "name": "REDIS_HOST",
+          "value": "redis"
+        },
+        {
+          "name": "REDIS_PASSWORD",
+          "value": "null"
+        },
+        {
+          "name": "REDIS_PORT",
+          "value": "6379"
+        },
+        {
+          "name": "MAIL_DRIVER",
+          "value": "smtp"
+        },
+        {
+          "name": "MAIL_HOST",
+          "value": "smtp.mailtrap.io"
+        },
+        {
+          "name": "MAIL_PORT",
+          "value": "2525"
+        },
+        {
+          "name": "MAIL_USERNAME",
+          "value": "null"
+        },
+        {
+          "name": "MAIL_PASSWORD",
+          "value": "null"
+        },
+        {
+          "name": "MAIL_ENCRYPTION",
+          "value": "null"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "value": "$AWS_ACCESS_KEY_ID"
+        },
+        {
+          "name": "AWS_SECRET_ACCESS_KEY",
+          "value": "$AWS_SECRET_ACCESS_KEY"
+        },
+        {
+          "name": "AWS_DEFAULT_REGION",
+          "value": "app-northeast-1"
+        },
+        {
+          "name": "AWS_BUCKET",
+          "value": ""
+        },
+        {
+          "name": "PUSHER_APP_ID",
+          "value": ""
+        },
+        {
+          "name": "PUSHER_APP_KEY",
+          "value": ""
+        },
+        {
+          "name": "PUSHER_APP_SECRET",
+          "value": ""
+        },
+        {
+          "name": "PUSHER_APP_CLUSTER",
+          "value": "mt1"
+        },
+        {
+          "name": "MIX_PUSHER_APP_KEY",
+          "value": ""
+        },
+        {
+          "name": "MIX_PUSHER_APP_CLUSTER",
+          "value": ""
+        }
+      ]
+    },
+    {
+      "name": "bmake-server-laravel-mysql",
+      "hostname": "mysql",
+      "image": "mysql:5.7",
+      "cpu": 190,
+      "memoryReservation": 150,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3306,
+          "hostPort": 3306
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "mysql_data_dir",
+          "containerPath": "/var/lib/mysql"
+        }
+      ],
+      "environment": [
+        {
+          "name": "MYSQL_ROOT_PASSWORD",
+          "value": "$DB_PASSWORD"
+        },
+        {
+          "name": "MYSQL_DATABASE",
+          "value": "$DATABASE_NAME"
+        },
+        {
+          "name": "MYSQL_USER",
+          "value": "$DB_USERNAME"
+        }
+      ]
+    },
+    {
+      "name": "bmake-client",
+      "hostname": "bmake-client",
+      "image": "$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-1.amazonaws.com/bmake/bmake-client:$CIRCLE_SHA1",
+      "cpu": 400,
+      "memoryReservation": 400,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
+        }
+      ],
+      "command": ["yarn", "run", "start:prod"],
+      "links": ["bmake-server-laravel-nginx:web"],
+      "environment": [
+        {
+          "name": "HOST",
+          "value": "127.0.0.1"
+        },
+        {
+          "name": "PORT",
+          "value": "80"
+        },
+        {
+          "name": "API_HOST",
+          "value": "bmake-server-laravel-nginx"
+        },
+        {
+          "name": "API_PORT",
+          "value": "8080"
+        },
+        {
+          "name": "DOMAIN",
+          "value": "http://bmake.io"
+        },
+        {
+          "name": "SECRET_KEY",
+          "value": "$SECRET_KEY"
+        },
+        {
+          "name": "AWS_ACCESS_KEY_ID",
+          "value": "$AWS_ACCESS_KEY_ID"
+        },
+        {
+          "name": "SECRET_ACCESS_KEY",
+          "value": "$AWS_SECRET_ACCESS_KEY"
+        },
+        {
+          "name": "AWS_REGION",
+          "value": "ap-northeast-1"
+        },
+        {
+          "name": "ASSETS_BUCKET",
+          "value": "$ASSETS_BUCKET"
+        },
+        {
+          "name": "ASSETS_ENDPOINT",
+          "value": "$ASSETS_ENDPOINT"
+        },
+        {
+          "name": "GITHUB_CLIENT_ID",
+          "value": "$GITHUB_CLIENT_ID"
+        },
+        {
+          "name": "GITHUB_SECRET",
+          "value": "$GITHUB_SECRET"
+        },
+        {
+          "name": "GTM_ID",
+          "value": "$GTM_ID"
+        },
+        {
+          "name": "MAIL_DOMAIN",
+          "value": "bmake.io"
+        },
+        {
+            "name": "SENDGRID_API_KEY",
+            "value": "$SENDGRID_API_KEY"
+        }
+      ]
+    },
+    {
+      "name": "datadog-agent",
+      "image": "datadog/agent:latest",
+      "cpu": 10,
+      "memoryReservation": 150,
+      "essential": true,
+      "mountPoints": [
+        {
+          "containerPath": "/var/run/docker.sock",
+          "sourceVolume": "docker_sock",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/host/sys/fs/cgroup",
+          "sourceVolume": "cgroup",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/host/proc",
+          "sourceVolume": "proc",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/etc/passwd",
+          "sourceVolume": "passwd",
+          "readOnly": true
+        },
+        {
+          "containerPath": "/opt/datadog-agent/run",
+          "sourceVolume": "pointdir",
+          "readOnly": false
+        }
+      ],
+      "environment": [
+        {
+          "name": "DD_API_KEY",
+          "value": "$DD_API_KEY"
+        },
+        {
+          "name": "DD_SITE",
+          "value": "datadoghq.com"
+        },
+        {
+          "name": "DD_PROCESS_AGENT_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "DD_LOGS_ENABLED",
+          "value": "true"
+        },
+        {
+          "name": "DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL",
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "mysql_data_dir",
+      "host": {
+        "sourcePath": "/var/lib/mysql"
+      }
+    },
+    {
+      "name": "docker_sock",
+      "host": {
+        "sourcePath": "/var/run/docker.sock"
+      }
+    },
+    {
+      "name": "proc",
+      "host": {
+        "sourcePath": "/proc/"
+      }
+    },
+    {
+      "name": "cgroup",
+      "host": {
+        "sourcePath": "/sys/fs/cgroup/"
+      }
+    },
+    {
+      "name": "passwd",
+      "host": {
+        "sourcePath": "/etc/passwd"
+      }
+    },
+    {
+      "name": "pointdir",
+      "host": {
+        "sourcePath": "/opt/datadog-agent/run"
+      }
+    }
+  ],
+  "family": "datadog-agent-task"
+}
