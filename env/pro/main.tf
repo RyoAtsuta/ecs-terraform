@@ -5,6 +5,8 @@ provider "aws" {
 }
 
 terraform {
+    required_version = "= 0.13.5"
+
     backend "s3" {
         bucket = "ryoryou-terraform-state-bucket"
         key = "bmake-terraform/terraform.tfstate"
@@ -52,6 +54,7 @@ module "acm" {
 
 module "alb" {
     source = "../../module/alb"
+
     vpc = {
         id = module.network.this_vpc_id
     }
@@ -69,6 +72,7 @@ module "alb" {
 # WIP: container.json, migration.jsonの環境変数を埋めるように環境変数をtfvars.terraformでセットする
 module "server" {
     source = "../../module/server"
+
     vpc_id = module.network.this_vpc_id
     target_group_arn = module.alb.this_target_group_arn
     public_subnet_ids = module.network.public_subnet_ids
@@ -98,5 +102,28 @@ module "server" {
     #     migration = file("${path.module}/task_definition/migration.json")
     # }
 
-    user_data = file("${path.module}/user_data/bmake_server.sh") # --------------------------------- WIP
+    launch_template = {
+        name = "${var.env}-${var.service_name}-container-lt"
+        user_data = base64encode(file("${path.module}/user_data/server.sh"))
+        instance_type = "t3a.small"
+    }
+
+    key_pair = {
+        name = "bmake"
+        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDORRIysbjvH52ZGzSD/EU9WnakUE43/P3u3wCeYsteMV3MbxXsDd2tVDDL4Gvp9VQmzEgg5dr/8bThC5ydvRzHRLg0XxQj4aGeEazwINdiGqflkDBD7vYc4vqNGsPGPIpr2O2YcvlCM8E3Ixaci8naxUDRLC6ydm+lmJ+0ag+aJ6/agDoeCRpebv4MNCSqN/FIq4YKIUU4KxoHDPK+qlv2siy6jDcL7eHWW3/3bgWig2Cnnkb8SyNmEYdSGAzNO1WwlCgfW23gJU4kDCwo9x+sKZnZ9zM2ZGK2RZbJZvGOcVHcPxYf4wHTTNyAq+7fiaKmEZNOIXpYcAiV9SXZvySl atsutaryou@atsutaryous-MacBook-puro.local"
+    }
+
+    autoscaling_group = {
+        name = "${var.env}-${var.service_name}-container-asg"
+        max_size = "1"
+        min_size = "1"
+        default_cooldown = "300"
+        health_check_grace_period = "300"
+        desired_capacity = "1"
+        termination_policy = "Default"
+        suspended_process = "HealthCheck"
+        instance_tag = "${var.env}-${var.service_name}-container-instance"
+    }
+
+    depends_on = [module.alb]
 }

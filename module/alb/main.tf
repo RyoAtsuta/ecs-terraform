@@ -110,12 +110,12 @@ resource "aws_lb_target_group" "this" {
     vpc_id = var.vpc.id
     port = 80
     protocol = "HTTP"
-    target_type = "ip"
+    target_type = "instance"
 
     health_check {
         port = 80
         path = "/"
     }
 
-    depends_on = ["aws_lb.this"]
+    depends_on = [aws_lb.this]
 }

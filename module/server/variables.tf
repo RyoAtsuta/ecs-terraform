@@ -30,11 +30,6 @@ variable "ecs_services" {
     type = map
 }
 
-variable "user_data" {
-    description = ""
-    type = string
-}
-
 variable "task_definitions" {
     description = ""
     type = map
@@ -43,4 +38,19 @@ variable "task_definitions" {
 variable "public_subnet_ids" {
     description = ""
     type = list
+}
+
+variable "launch_template" {
+    description = ""
+    type = map
+}
+
+variable "key_pair" {
+    description = ""
+    type = map
+}
+
+variable "autoscaling_group" {
+    description = ""
+    type = map
 }
