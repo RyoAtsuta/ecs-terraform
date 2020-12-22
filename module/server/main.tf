@@ -88,14 +88,17 @@ resource "aws_launch_template" "ecs" {
     update_default_version = true
     instance_type = var.launch_template.instance_type
     key_name = var.key_pair.name
-    vpc_security_group_ids = [
-        aws_security_group.ecs.id
-    ]
+    # vpc_security_group_ids = [
+    #     aws_security_group.ecs.id
+    # ]
     user_data = var.launch_template.user_data
 
     network_interfaces {
         associate_public_ip_address = true
+        security_groups = [aws_security_group.ecs.id]
     }
+
+    depends_on = [aws_security_group.ecs]
 
     tags = {
         Name = var.launch_template.name
@@ -140,4 +143,3 @@ resource "aws_autoscaling_group" "this" {
     }
 }
 
-# Template File
