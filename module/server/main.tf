@@ -57,6 +57,14 @@ resource "aws_security_group" "ecs" {
         description = "All open for HTTP"
     }
 
+    ingress {
+        cidr_blocks = var.ssh_cidr_blocks
+        from_port = 22
+        to_port = 22
+        protocol = "tcp"
+        description = "My Public IP Address for SSH"
+    }
+
     egress {
         cidr_blocks = ["0.0.0.0/0"]
         from_port = 0
@@ -88,14 +96,15 @@ resource "aws_launch_template" "ecs" {
     update_default_version = true
     instance_type = var.launch_template.instance_type
     key_name = var.key_pair.name
-    # vpc_security_group_ids = [
-    #     aws_security_group.ecs.id
-    # ]
     user_data = var.launch_template.user_data
 
     network_interfaces {
         associate_public_ip_address = true
         security_groups = [aws_security_group.ecs.id]
+    }
+
+    iam_instance_profile {
+        arn = aws_iam_instance_profile.ecs_instance.arn
     }
 
     depends_on = [aws_security_group.ecs]
@@ -134,7 +143,7 @@ resource "aws_autoscaling_group" "this" {
     vpc_zone_identifier = var.public_subnet_ids
     target_group_arns = [var.target_group_arn]
     termination_policies = [var.autoscaling_group.termination_policy]
-    suspended_processes = [var.autoscaling_group.suspended_process]
+    # suspended_processes = [var.autoscaling_group.suspended_process]
 
     tag {
         key = "Name"
@@ -143,3 +152,41 @@ resource "aws_autoscaling_group" "this" {
     }
 }
 
+# IAM
+resource "aws_iam_role" "ecs_instance" {
+    name = "ecsInstanceRole"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+
+    tags = {
+        Name = "${var.env}-${var.service_name}-ecs-instance-role"
+    }
+}
+
+data "aws_iam_policy" "ecs_instance" {
+    arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+resource "aws_iam_policy_attachment" "ecs_instance" {
+    name = "ecsInstancePolicyAttachment"
+    roles = [aws_iam_role.ecs_instance.name]
+    policy_arn = data.aws_iam_policy.ecs_instance.arn
+}
+
+resource "aws_iam_instance_profile" "ecs_instance" {
+    name = "ecsInstanceProfile"
+    role = aws_iam_role.ecs_instance.name
+}

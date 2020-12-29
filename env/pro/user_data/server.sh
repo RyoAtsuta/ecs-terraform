@@ -1,3 +1,3 @@
 #!/bin/bash
 
-export ECS_CLUSTER=prod-bmake-container-cluster
+echo ECS_CLUSTER=pro-bmake-container-cluster >> /etc/ecs/ecs.config

@@ -21,3 +21,8 @@ variable "domain_name" {
     type = string
     default = "ryoryou.ml"
 }
+
+variable "ssh_cidr_blocks" {
+    description = ""
+    type = list
+}

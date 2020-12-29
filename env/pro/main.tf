@@ -65,11 +65,6 @@ module "alb" {
     domain_name = var.domain_name
 }
 
-# module "ecr" {
-#     source = "../../module/ecr"
-# }
-
-# WIP: container.json, migration.jsonの環境変数を埋めるように環境変数をtfvars.terraformでセットする
 module "server" {
     source = "../../module/server"
 
@@ -88,19 +83,11 @@ module "server" {
         }
     }
     task_definitions = {
-        # container = {
-        #     name = "${var.env}-${var.service_name}-container-task"
-        #     task_definition = file("${path.module}/task_definition/container.json") # ---------- WIP
-        # }
         nginx = {
             name = "${var.env}-${var.service_name}-nginx-task"
-            task_definition = file("${path.module}/task_definition/nginx.json")
-        }  
+            task_definition = data.template_file.task_definition_nginx_env.rendered
+        }
     }
-    
-    # run_tasks = {
-    #     migration = file("${path.module}/task_definition/migration.json")
-    # }
 
     launch_template = {
         name = "${var.env}-${var.service_name}-container-lt"
@@ -110,7 +97,7 @@ module "server" {
 
     key_pair = {
         name = "bmake"
-        public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDORRIysbjvH52ZGzSD/EU9WnakUE43/P3u3wCeYsteMV3MbxXsDd2tVDDL4Gvp9VQmzEgg5dr/8bThC5ydvRzHRLg0XxQj4aGeEazwINdiGqflkDBD7vYc4vqNGsPGPIpr2O2YcvlCM8E3Ixaci8naxUDRLC6ydm+lmJ+0ag+aJ6/agDoeCRpebv4MNCSqN/FIq4YKIUU4KxoHDPK+qlv2siy6jDcL7eHWW3/3bgWig2Cnnkb8SyNmEYdSGAzNO1WwlCgfW23gJU4kDCwo9x+sKZnZ9zM2ZGK2RZbJZvGOcVHcPxYf4wHTTNyAq+7fiaKmEZNOIXpYcAiV9SXZvySl atsutaryou@atsutaryous-MacBook-puro.local"
+        public_key = file("${path.module}/keys/id_rsa.pub")
     }
 
     autoscaling_group = {
@@ -125,5 +112,16 @@ module "server" {
         instance_tag = "${var.env}-${var.service_name}-container-instance"
     }
 
+    ssh_cidr_blocks = var.ssh_cidr_blocks
+
     depends_on = [module.alb]
+}
+
+# Template File
+data "template_file" "task_definition_nginx_env" {
+    template = file("${path.module}/task_definition/nginx.tpl")
+
+    vars = {
+        sample_variable = "this is sample"
+    }
 }

@@ -9,6 +9,12 @@
                 "containerPort" : 80,
                 "hostPort" : 80
             }
-        ]    
+        ],
+        "environment" : [
+            {
+                "name" : "SAMPLE_VARIABLE",
+                "value" : "${sample_variable}"
+            }
+        ]
     }
 ]

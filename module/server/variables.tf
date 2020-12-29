@@ -54,3 +54,8 @@ variable "autoscaling_group" {
     description = ""
     type = map
 }
+
+variable "ssh_cidr_blocks" {
+    description = ""
+    type = list
+}
